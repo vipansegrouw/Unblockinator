@@ -1,15 +1,18 @@
 import re
 
+from collections import defaultdict
+from typing import Dict, List
+
 def build_value_regex(players: set[str]) -> re.Pattern:
     players_re = "|".join(re.escape(p) for p in players)
     pattern = rf"""
         ^
         (?P<key>.+?\(({players_re})\))    # key up to and including (playername)
-        \s*                               # optional whitespace after key
-        (?P<value>.*)                     # value is everything else after
+        (?:\s*:\s*(?P<value>.+))?         # optionally: colon + value (non-capturing group)
         $
     """
     return re.compile(pattern, re.VERBOSE)
+
 
 def normalize_item_name(s: str) -> str:
     # Remove anything in parentheses
@@ -17,6 +20,9 @@ def normalize_item_name(s: str) -> str:
 
     # Replace underscores with spaces
     s = s.replace("_", " ")
+
+    # Replace points with spaces
+    s = s.replace(".", " ")
 
     # Lowercase
     s = s.lower()
