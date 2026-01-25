@@ -25,3 +25,40 @@ def normalize_item_name(s: str) -> str:
     s = re.sub(r"\s+", " ", s)
 
     return s.strip()
+
+def format_fuzzy_search_results(
+    search_results: Dict[str, List[Dict[str, object]]],
+) -> List[str]:
+    """
+    Format fuzzy search results into human-readable output lines.
+
+    Groups matches by matched item and aggregates spheres.
+
+    Returns:
+        List[str]: formatted output lines
+    """
+
+    output: List[str] = []
+
+    for search_item, matches in search_results.items():
+        grouped = defaultdict(lambda: {"spheres": set(), "confidence": 0})
+
+        for match in matches:
+            matched_item = match["matched_item"]
+            grouped[matched_item]["spheres"].add(match["sphere"])
+            grouped[matched_item]["confidence"] = max(
+                grouped[matched_item]["confidence"],
+                match["confidence"],
+            )
+
+        for matched_item, data in grouped.items():
+            spheres = ", ".join(sorted(data["spheres"], key=int))
+            confidence = data["confidence"]
+
+            output.append(
+                f"{search_item} → {matched_item} "
+                f"Sphere(s) {spheres} "
+                f"(confidence {confidence}%)"
+            )
+
+    return output
