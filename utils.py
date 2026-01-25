@@ -63,7 +63,7 @@ def format_fuzzy_search_results(
 
             output.append(
                 f"{search_item} → {matched_item} "
-                f"Sphere(s) {spheres} "
+                f"Sphere{"(s)" if len(spheres) > 1 else ''} {spheres} "
                 f"(confidence {confidence}%)"
             )
 
