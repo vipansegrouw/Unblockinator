@@ -1,30 +1,10 @@
 import re
 
-from urllib.request import urlopen
-from urllib.error import URLError, HTTPError
 from collections import defaultdict
 from typing import Dict, List
 from thefuzz import fuzz
 
 from utils import normalize_item_name
-
-
-def download_input_file(url: str) -> list[str]:
-    """
-    Download a text file from a URL and return it as a list of lines,
-    suitable for extract_playthrough_block().
-    """
-    try:
-        with urlopen(url) as response:
-            # Decode as UTF-8, replacing invalid bytes safely
-            text = response.read().decode("utf-8", errors="replace")
-    except HTTPError as e:
-        raise RuntimeError(f"HTTP error {e.code} while downloading {url}") from e
-    except URLError as e:
-        raise RuntimeError(f"Failed to reach {url}: {e.reason}") from e
-
-    # Normalize line endings and split into lines
-    return text.splitlines()
 
 
 def extract_playthrough_block(lines: list[str]) -> list[str]:

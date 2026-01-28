@@ -1,7 +1,67 @@
+import json
 import re
 
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, Any
+from urllib.error import HTTPError, URLError
+from urllib.request import urlopen
+
+archipelago_api_base_url = "https://archipelago.gg/api"
+
+def _build_room_api_url(room_id: str) -> str:
+    return archipelago_api_base_url + f"/room_status/{room_id}"
+
+def _build_static_tracker_url(tracker_id: str) -> str:
+    return archipelago_api_base_url + f"/static_tracker/{tracker_id}"
+
+def _build_tracker_url(tracker_id: str) -> str:
+    return archipelago_api_base_url + f"/tracker/{tracker_id}"
+
+def _build_datapackage_url(game_specific_hash: str) -> str:
+    return archipelago_api_base_url + f"/datapackage/{game_specific_hash}"
+
+def _get_room_status_json(room_id: str) -> Dict[str, Any]:
+    return download_json(_build_room_api_url(room_id))
+
+def _get_tracker_id(room_json: Dict[str, Any]) -> Dict[str, Any]:
+    id = room_json.get("players",{}).get("tracker",{})
+    if id:
+        return id
+    else:
+        raise Exception("Could not find tracker id")
+
+def _get_static_tracker_json(tracker_id: str) -> Dict[str, Any]:
+    return download_json(_build_static_tracker_url(tracker_id))
+
+def _get_tracker_json(tracker_id: str) -> Dict[str, Any]:
+    return download_json(_build_tracker_url(tracker_id))
+
+def _get_datapackage_jsons(static_tracker_json: str) -> Dict[str, Any]:
+    checksums = {}
+    datapackage = static_tracker_json.get("datapackage", {})
+    datapackages = {}
+    if not datapackage:
+        raise Exception("Could not find datapackage in static tracker JSON")
+    for key, value in datapackage.items():
+        if not key == "Archipelago":
+            checksums[key] = value.get("checksum")
+    for name, checksum in checksums.items():
+        url = _build_datapackage_url(checksum)
+        datapackages[name] = download_json(url)
+    return datapackages
+
+def download_json(url: str) -> Dict:
+    """
+    Download a JSON file from a URL and return it as a JSON object.
+    """
+    try:
+        with urlopen(url) as response:
+            text = response.read().decode("utf-8", errors="replace")
+            return json.loads(text)
+    except HTTPError as e:
+        raise RuntimeError(f"HTTP error {e.code} while downloading {url}") from e
+    except URLError as e:
+        raise RuntimeError(f"Failed to reach {url}: {e.reason}") from e
 
 def build_value_regex(players: set[str]) -> re.Pattern:
     players_re = "|".join(re.escape(p) for p in players)
@@ -68,3 +128,21 @@ def format_fuzzy_search_results(
             )
 
     return output
+
+
+def download_input_file(url: str) -> list[str]:
+    """
+    Download a text file from a URL and return it as a list of lines,
+    suitable for extract_playthrough_block().
+    """
+    try:
+        with urlopen(url) as response:
+            # Decode as UTF-8, replacing invalid bytes safely
+            text = response.read().decode("utf-8", errors="replace")
+    except HTTPError as e:
+        raise RuntimeError(f"HTTP error {e.code} while downloading {url}") from e
+    except URLError as e:
+        raise RuntimeError(f"Failed to reach {url}: {e.reason}") from e
+
+    # Normalize line endings and split into lines
+    return text.splitlines()
