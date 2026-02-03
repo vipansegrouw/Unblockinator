@@ -36,7 +36,7 @@ def _get_static_tracker_json(tracker_id: str) -> Dict[str, Any]:
 def _get_tracker_json(tracker_id: str) -> Dict[str, Any]:
     return download_json(_build_tracker_url(tracker_id))
 
-def _get_datapackage_jsons(static_tracker_json: str) -> Dict[str, Any]:
+def _get_datapackage_jsons(static_tracker_json: Dict[str, Any]) -> Dict[str, Any]:
     checksums = {}
     datapackage = static_tracker_json.get("datapackage", {})
     datapackages = {}
