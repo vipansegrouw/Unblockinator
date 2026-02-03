@@ -20,11 +20,11 @@ def _build_tracker_url(tracker_id: str) -> str:
 def _build_datapackage_url(game_specific_hash: str) -> str:
     return archipelago_api_base_url + f"/datapackage/{game_specific_hash}"
 
-def _get_room_status_json(room_id: str) -> Dict[str, Any]:
+def _get_room_json(room_id: str) -> Dict[str, Any]:
     return download_json(_build_room_api_url(room_id))
 
-def _get_tracker_id(room_json: Dict[str, Any]) -> Dict[str, Any]:
-    id = room_json.get("players",{}).get("tracker",{})
+def _get_tracker_id(room_json: Dict[str, Any]) -> str:
+    id = room_json.get("tracker",'')
     if id:
         return id
     else:

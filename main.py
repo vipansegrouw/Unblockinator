@@ -8,8 +8,9 @@ from utils import format_fuzzy_search_results
 
 # case doesn't matter, underscores don't matter, and it will match substrings
 possible_unblocking_items = [
-    "Toploader",
-    "sword upgrade",
+    "Grenade",
+    "Bash",
+    "Master Sword",
 ]
 
 # list every player's "slot" name as it appears in archipelago
@@ -22,7 +23,7 @@ players = {
 log_url = "https://archipelago.gg/dl_spoiler/foo_bar"
 
 # a threshold of % match that must be met for fuzzy matcher to return a match
-fuzzy_threshold = 80
+fuzzy_threshold = 90
 
 """
 -------------- END OF INPUT --------------
