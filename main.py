@@ -1,5 +1,5 @@
-from app import download_input_file, extract_playthrough_block, parse_spheres, find_item_spheres_fuzzy
-from utils import build_value_regex
+from app import extract_playthrough_block, parse_spheres, find_item_spheres_fuzzy
+from utils import build_value_regex, download_input_file, collect_files, get_players
 from utils import format_fuzzy_search_results
 
 """
@@ -13,12 +13,6 @@ possible_unblocking_items = [
     "Master Sword",
 ]
 
-# list every player's "slot" name as it appears in archipelago
-players = {
-    "player1",
-    "player 2",
-}
-
 # the download link for the spoiler log
 log_url = "https://archipelago.gg/dl_spoiler/foo_bar"
 
@@ -28,6 +22,14 @@ fuzzy_threshold = 90
 """
 -------------- END OF INPUT --------------
 """
+
+room_json, static_tracker_json, tracker_json, datapackage_jsons = collect_files(room_id)
+players_dict = {}
+player_number = 0
+for player, game in get_players(room_json):
+    player_number += 1
+    players_dict[player] = {'name': player, 'game': game, "player number": player_number}
+players = set(players_dict.keys())
 
 value_re = build_value_regex(players)
 spoiler_lines = download_input_file(log_url)

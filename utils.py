@@ -17,6 +17,10 @@ def _build_static_tracker_url(tracker_id: str) -> str:
 def _build_tracker_url(tracker_id: str) -> str:
     return archipelago_api_base_url + f"/tracker/{tracker_id}"
 
+def get_players(room_json: Dict[str, Any]) -> List[str]:
+    players = room_json.get("players", [])
+    return players
+
 def _build_datapackage_url(game_specific_hash: str) -> str:
     return archipelago_api_base_url + f"/datapackage/{game_specific_hash}"
 
@@ -49,6 +53,14 @@ def _get_datapackage_jsons(static_tracker_json: Dict[str, Any]) -> Dict[str, Any
         url = _build_datapackage_url(checksum)
         datapackages[name] = download_json(url)
     return datapackages
+
+def collect_files(room_id: str):
+    room_json = _get_room_json(room_id)
+    tracker_id = _get_tracker_id(room_json)
+    static_tracker_json = _get_static_tracker_json(tracker_id)
+    tracker_json = _get_tracker_json(tracker_id)
+    datapackage_jsons = _get_datapackage_jsons(static_tracker_json)
+    return room_json, static_tracker_json, tracker_json, datapackage_jsons
 
 def download_json(url: str) -> Dict:
     """
@@ -146,3 +158,15 @@ def download_input_file(url: str) -> list[str]:
 
     # Normalize line endings and split into lines
     return text.splitlines()
+
+def build_location_dict(players_dict: Dict[str, Any], static_tracker_json, tracker_json, datapackage_jsons) -> Dict[str, Any]:
+    locations_dict = {player: {} for player in players_dict.keys()}
+    for player, info in players_dict.items():
+        player_number = info["number"]
+        game = ''
+        for player_game_list_entry in static_tracker_json["player_game"]:
+            if player_number == player_game_list_entry["player"]:
+                game = player_game_list_entry["game"]
+        if not game:
+            raise Exception(f"Could not find game for {player}")
+        checksum = static_tracker_json["datapackage"][game]["checksum"]
