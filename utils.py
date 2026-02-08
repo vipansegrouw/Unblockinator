@@ -158,15 +158,3 @@ def download_input_file(url: str) -> list[str]:
 
     # Normalize line endings and split into lines
     return text.splitlines()
-
-def build_location_dict(players_dict: Dict[str, Any], static_tracker_json, tracker_json, datapackage_jsons) -> Dict[str, Any]:
-    locations_dict = {player: {} for player in players_dict.keys()}
-    for player, info in players_dict.items():
-        player_number = info["number"]
-        game = ''
-        for player_game_list_entry in static_tracker_json["player_game"]:
-            if player_number == player_game_list_entry["player"]:
-                game = player_game_list_entry["game"]
-        if not game:
-            raise Exception(f"Could not find game for {player}")
-        checksum = static_tracker_json["datapackage"][game]["checksum"]

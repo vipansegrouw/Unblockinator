@@ -1,10 +1,12 @@
+import math
 import re
 
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, Any
 from thefuzz import fuzz
 
 from utils import normalize_item_name
+from main import DEBUG_MODE
 
 
 def extract_playthrough_block(lines: list[str]) -> list[str]:
@@ -138,3 +140,60 @@ def find_item_spheres_fuzzy(
                     })
 
     return dict(results)
+
+
+def find_earliest_check_for_each_player_in_each_players_game(players_dict: Dict[str, Any], spheres: Dict[str, Any], datapackages_json, tracker_json) -> Dict[str, List]:
+    results = {}
+    for player_name, player_data in players_dict.items():
+        player_results = []
+        for game in players_dict.values():
+            game_name = game["game"]
+            checking_player = game["name"]
+            best_so_far = {}
+            for sphere_number, sphere_data in spheres.items():
+                sphere_number = int(sphere_number)
+                for location, unlock in sphere_data.items():
+                    if not unlock:
+                        continue
+                    if sphere_number >= best_so_far.get("sphere", math.inf):
+                        continue
+                    if not player_name in unlock:
+                        continue
+                    if not checking_player in location:
+                        continue
+                    try:
+                        is_checked = is_location_checked(game.get("player number") - 1, location, datapackages_json,
+                                                         tracker_json, game_name)
+                    except Exception as e:
+                        if DEBUG_MODE:
+                            print(e)
+                        continue
+                    if is_checked:
+                        continue
+                    if not best_so_far:
+                        best_so_far = {
+                            "game": game,
+                            "sphere": sphere_number,
+                            "unlock": unlock,
+                            "location": location
+                        }
+                        continue
+            player_results.append(best_so_far)
+        results[player_name] = player_results
+
+    return results
+
+def is_location_checked(checked_player_number, location: str, datapackages_json, tracker_json, game_name) -> bool:
+    location_name = canonical_location_name(location)
+    location_id = location_name_to_id(location_name, datapackages_json, game_name)
+    return location_id in tracker_json["player_checks_done"][checked_player_number]["locations"]
+
+def location_name_to_id(location_name: str, datapackages_json, game_name: str) -> str:
+    location_id = datapackages_json[game_name]["location_name_to_id"].get(location_name, None)
+    if not location_id:
+        raise Exception(f"Unable to find a matching ID for {location_name} in {game_name}. Maybe a default unlock?")
+    return location_id
+
+def canonical_location_name(location_name: str) -> str:
+    return re.sub(r'\s*\([^()]*\)$', '', location_name)
+
