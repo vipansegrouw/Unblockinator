@@ -14,7 +14,7 @@ possible_unblocking_items = [
     "Master Sword",
 ]
 
-# the download link for the spoiler log
+# the download link for the spoiler log, and the id of the room
 log_url = "https://archipelago.gg/dl_spoiler/foo_bar"
 room_id = "fooOooOooOo0Oo-b4Ar"
 
