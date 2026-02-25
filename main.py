@@ -45,7 +45,7 @@ if __name__ == "__main__":
     for line in format_fuzzy_search_results(search_results):
         print(line)
 
-    earliest_checks = find_earliest_check_for_each_player_in_each_players_game(players_dict, spheres, datapackage_jsons, tracker_json)
+    earliest_checks = find_earliest_check_for_each_player_in_each_players_game(players_dict, spheres, datapackage_jsons, tracker_json, DEBUG_MODE)
     for player, entry in earliest_checks.items():
         for thing in entry:
             if not thing:

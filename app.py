@@ -6,7 +6,6 @@ from typing import Dict, List, Any
 from thefuzz import fuzz
 
 from utils import normalize_item_name
-from main import DEBUG_MODE
 
 
 def extract_playthrough_block(lines: list[str]) -> list[str]:
@@ -142,7 +141,7 @@ def find_item_spheres_fuzzy(
     return dict(results)
 
 
-def find_earliest_check_for_each_player_in_each_players_game(players_dict: Dict[str, Any], spheres: Dict[str, Any], datapackages_json, tracker_json) -> Dict[str, List]:
+def find_earliest_check_for_each_player_in_each_players_game(players_dict: Dict[str, Any], spheres: Dict[str, Any], datapackages_json, tracker_json, debug_mode: bool = False) -> Dict[str, List]:
     results = {}
     for player_name, player_data in players_dict.items():
         player_results = []
